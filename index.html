@@ -393,7 +393,7 @@
         }
 
         .modal-content {
-            width: 350px;
+            width: 90%; max-width: 400px;
             position: relative;
         }
 
@@ -425,6 +425,74 @@
         #toggle-builder-btn {
             width: 100%;
             margin-bottom: 5px;
+        }
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .app-container {
+                width: 95%;
+            }
+
+            header {
+                flex-direction: column;
+                padding: 15px;
+                gap: 15px;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .header-actions {
+                justify-content: center;
+            }
+
+            .panel {
+                padding: 15px;
+            }
+
+            .days-grid {
+                grid-auto-rows: minmax(60px, auto);
+                gap: 2px;
+            }
+
+            .day-cell {
+                padding: 4px;
+            }
+
+            .day-number {
+                font-size: 14px;
+            }
+
+            .shift-info {
+                font-size: 10px;
+                margin-top: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .app-container {
+                width: 100%;
+            }
+
+            .days-grid {
+                grid-auto-rows: minmax(50px, auto);
+                gap: 1px;
+            }
+
+            .day-cell {
+                padding: 2px;
+            }
+
+            .days-header div {
+                font-size: 0.8rem;
+                padding: 5px 0;
+            }
+
+            .shift-info {
+                font-size: 9px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -538,7 +606,7 @@
 
     <!-- Modal for Settings -->
     <div id="settings-modal" class="modal">
-        <div class="modal-content panel" style="width: 400px;">
+        <div class="modal-content panel" style="width: 90%; max-width: 400px;">
             <span class="close-btn" id="close-settings-btn">&times;</span>
             <h2>Настройки</h2>
 
