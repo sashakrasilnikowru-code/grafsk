@@ -702,6 +702,9 @@
                 const provider = btn.textContent.trim().toLowerCase(); // 'google' or 'github'
                 const { data, error } = await supabaseClient.auth.signInWithOAuth({
                     provider: provider,
+                    options: {
+                        redirectTo: 'https://sashakrasilnikowru-code.github.io/grafsk/'
+                    }
                 });
                 if (error) {
                     console.error("Auth error:", error.message);
