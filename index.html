@@ -582,7 +582,12 @@
     <script>
         const supabaseUrl = 'https://oncgkinwhuyyposqexpc.supabase.co';
         const supabaseKey = 'sb_publishable_HTWPURunOy7vhPOBZ5ANEw_jYgDLKZR';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let supabaseClient = null;
+        try {
+            supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        } catch (e) {
+            console.error("Ошибка инициализации Supabase:", e.message);
+        }
 
         // State
         let scheduleData = JSON.parse(localStorage.getItem('shiftSchedule')) || {};
@@ -678,7 +683,9 @@
             logoutBtn.textContent = 'Выйти';
 
             logoutBtn.addEventListener('click', async () => {
-                await supabase.auth.signOut();
+                if (supabaseClient) {
+                    await supabaseClient.auth.signOut();
+                }
                 location.reload();
             });
 
@@ -688,8 +695,12 @@
 
         authBtns.forEach(btn => {
             btn.addEventListener('click', async () => {
+                if (!supabaseClient) {
+                    alert("Авторизация недоступна, так как не удалось подключиться к серверу базы данных. Приложение работает в автономном режиме.");
+                    return;
+                }
                 const provider = btn.textContent.trim().toLowerCase(); // 'google' or 'github'
-                const { data, error } = await supabase.auth.signInWithOAuth({
+                const { data, error } = await supabaseClient.auth.signInWithOAuth({
                     provider: provider,
                 });
                 if (error) {
@@ -699,27 +710,29 @@
             });
         });
 
-        // Initialize Auth State Listener
-        supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN' && session) {
-                setLoggedInState(session.user);
-                loadDataFromSupabase();
-            } else if (event === 'SIGNED_OUT') {
-                localStorage.removeItem('authUser');
-                scheduleData = {};
-                localStorage.removeItem('shiftSchedule');
-                renderCalendar(currentDate);
-                updateStats();
-            }
-        });
+        if (supabaseClient) {
+            // Initialize Auth State Listener
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    setLoggedInState(session.user);
+                    loadDataFromSupabase();
+                } else if (event === 'SIGNED_OUT') {
+                    localStorage.removeItem('authUser');
+                    scheduleData = {};
+                    localStorage.removeItem('shiftSchedule');
+                    renderCalendar(currentDate);
+                    updateStats();
+                }
+            });
 
-        // Check initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-                setLoggedInState(session.user);
-                loadDataFromSupabase();
-            }
-        });
+            // Check initial session
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    setLoggedInState(session.user);
+                    loadDataFromSupabase();
+                }
+            });
+        }
 
         // Builder Collapse Toggle
         toggleBuilderBtn.addEventListener('click', () => {
@@ -1102,10 +1115,11 @@
         async function saveData() {
             localStorage.setItem('shiftSchedule', JSON.stringify(scheduleData));
 
+            if (!supabaseClient) return;
             // Sync to Supabase if logged in
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (session && session.user) {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('schedules')
                     .upsert({
                         user_id: session.user.id,
@@ -1119,9 +1133,10 @@
         }
 
         async function loadDataFromSupabase() {
-            const { data: { session } } = await supabase.auth.getSession();
+            if (!supabaseClient) return;
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (session && session.user) {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('schedules')
                     .select('data')
                     .eq('user_id', session.user.id)
