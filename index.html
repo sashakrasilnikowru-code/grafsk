@@ -442,37 +442,52 @@
                     </label>
                 </div>
                 <button id="open-settings-btn" class="secondary-btn" style="margin-top:0; margin-left: 15px;">Настройки & Данные</button>
-                <div class="auth-placeholders" style="margin-left: 15px; display: flex; gap: 5px;">
-                    <button class="secondary-btn" style="margin-top:0;" title="Функция в разработке">Google</button>
-                    <button class="secondary-btn" style="margin-top:0;" title="Функция в разработке">GitHub</button>
+                <div class="auth-placeholders" id="auth-container" style="margin-left: 15px; display: flex; gap: 5px; align-items: center;">
+                    <button class="secondary-btn auth-btn" style="margin-top:0;">Google</button>
+                    <button class="secondary-btn auth-btn" style="margin-top:0;">GitHub</button>
                 </div>
             </div>
         </header>
 
         <div class="main-content">
-            <section class="controls panel">
-                <h2>Шаблон смен</h2>
-                <button id="toggle-builder-btn" class="secondary-btn">Создать график &#9660;</button>
+            <div class="left-sidebar" style="display: flex; flex-direction: column; gap: 20px;">
+                <button id="toggle-builder-btn" class="secondary-btn panel" style="width: 100%; text-align: center; margin: 0; padding: 15px; font-size: 1.1em; background: var(--panel-bg); cursor: pointer;">
+                    Создать шаблон смен &#9660;
+                </button>
 
-                <div id="cycle-builder-collapse" class="collapsible-content">
-                    <div class="control-group">
-                        <label for="start-date">Дата начала цикла:</label>
-                        <input type="date" id="start-date">
-                    </div>
-                    <div class="control-group">
-                        <label>Последовательность цикла:</label>
-                        <div id="cycle-steps-container">
-                            <!-- Cycle steps will be rendered here -->
+                <div id="cycle-builder-collapse" class="collapsible-content" style="margin-top: 0;">
+                    <section class="controls panel">
+                        <div class="control-group">
+                            <label for="start-date">Дата начала цикла:</label>
+                            <input type="date" id="start-date">
                         </div>
-                        <button id="add-cycle-step-btn" type="button" class="secondary-btn">+ Добавить смену / выходной</button>
-                    </div>
-                    <div class="control-group">
-                        <label for="default-hours">Часов в смене:</label>
-                        <input type="number" id="default-hours" min="1" max="24" value="11">
-                    </div>
-                    <button id="generate-btn">Сгенерировать график на год</button>
+                        <div class="control-group">
+                            <label>Последовательность цикла:</label>
+                            <div id="cycle-steps-container">
+                                <!-- Cycle steps will be rendered here -->
+                            </div>
+                            <button id="add-cycle-step-btn" type="button" class="secondary-btn">+ Добавить смену / выходной</button>
+                        </div>
+                        <div class="control-group">
+                            <label for="default-hours">Часов в смене:</label>
+                            <input type="number" id="default-hours" min="1" max="24" value="11">
+                        </div>
+                        <button id="generate-btn">Сгенерировать график на год</button>
+                    </section>
                 </div>
-            </section>
+
+                <section class="stats panel">
+                    <h2>Статистика</h2>
+                    <div class="stats-row">
+                        <span>Часов за текущий месяц:</span>
+                        <strong id="month-hours">0</strong>
+                    </div>
+                    <div class="stats-row">
+                        <span>Часов за текущий год:</span>
+                        <strong id="year-hours">0</strong>
+                    </div>
+                </section>
+            </div>
 
             <section class="calendar-section panel">
                 <div class="calendar-header">
@@ -492,17 +507,6 @@
                 <div id="calendar-days" class="calendar-grid days-grid"></div>
             </section>
 
-            <section class="stats panel">
-                <h2>Статистика</h2>
-                <div class="stats-row">
-                    <span>Часов за текущий месяц:</span>
-                    <strong id="month-hours">0</strong>
-                </div>
-                <div class="stats-row">
-                    <span>Часов за текущий год:</span>
-                    <strong id="year-hours">0</strong>
-                </div>
-            </section>
         </div>
     </div>
 
@@ -623,6 +627,9 @@
         const exportBtn = document.getElementById('export-btn');
         const importFile = document.getElementById('import-file');
 
+        const authContainer = document.getElementById('auth-container');
+        const authBtns = document.querySelectorAll('.auth-btn');
+
         // Initialization
         function init() {
             // Set initial start date to today if empty
@@ -643,18 +650,43 @@
                 applyCustomColors(customColors);
             }
 
+            const savedUser = localStorage.getItem('authUser');
+            if (savedUser) {
+                setLoggedInState(savedUser);
+            }
+
             renderCycleSteps();
             renderCalendar(currentDate);
             updateStats();
         }
 
+        // Auth Mock
+        function setLoggedInState(username) {
+            authContainer.innerHTML = `<span style="font-weight: bold; margin-right: 10px;">👤 ${username}</span> <button class="secondary-btn" id="logout-btn" style="margin-top:0;">Выйти</button>`;
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                localStorage.removeItem('authUser');
+                location.reload();
+            });
+        }
+
+        authBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const username = prompt("Введите ваше имя для входа:");
+                if (username && username.trim() !== '') {
+                    localStorage.setItem('authUser', username.trim());
+                    setLoggedInState(username.trim());
+                    alert("Внимание: Поскольку это приложение работает без сервера, реальная облачная синхронизация сейчас недоступна. Для переноса графика на другое устройство воспользуйтесь функцией 'Экспорт / Импорт' в настройках.");
+                }
+            });
+        });
+
         // Builder Collapse Toggle
         toggleBuilderBtn.addEventListener('click', () => {
             cycleBuilderCollapse.classList.toggle('expanded');
             if (cycleBuilderCollapse.classList.contains('expanded')) {
-                toggleBuilderBtn.innerHTML = 'Скрыть график &#9650;';
+                toggleBuilderBtn.innerHTML = 'Скрыть шаблон смен &#9650;';
             } else {
-                toggleBuilderBtn.innerHTML = 'Создать график &#9660;';
+                toggleBuilderBtn.innerHTML = 'Создать шаблон смен &#9660;';
             }
         });
 
@@ -874,7 +906,7 @@
 
             // Collapse the builder after generation
             cycleBuilderCollapse.classList.remove('expanded');
-            toggleBuilderBtn.innerHTML = 'Создать график &#9660;';
+            toggleBuilderBtn.innerHTML = 'Создать шаблон смен &#9660;';
 
             alert("График успешно сгенерирован!");
         });
