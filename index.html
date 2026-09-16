@@ -577,7 +577,13 @@
         </div>
     </div>
 
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        const supabaseUrl = 'https://oncgkinwhuyyposqexpc.supabase.co';
+        const supabaseKey = 'sb_publishable_HTWPURunOy7vhPOBZ5ANEw_jYgDLKZR';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
         // State
         let scheduleData = JSON.parse(localStorage.getItem('shiftSchedule')) || {};
         let currentDate = new Date();
@@ -650,34 +656,69 @@
                 applyCustomColors(customColors);
             }
 
-            const savedUser = localStorage.getItem('authUser');
-            if (savedUser) {
-                setLoggedInState(savedUser);
-            }
-
             renderCycleSteps();
             renderCalendar(currentDate);
             updateStats();
         }
 
-        // Auth Mock
-        function setLoggedInState(username) {
-            authContainer.innerHTML = `<span style="font-weight: bold; margin-right: 10px;">👤 ${username}</span> <button class="secondary-btn" id="logout-btn" style="margin-top:0;">Выйти</button>`;
-            document.getElementById('logout-btn').addEventListener('click', () => {
-                localStorage.removeItem('authUser');
+        // Supabase Auth
+        async function setLoggedInState(user) {
+            const displayName = user.user_metadata?.full_name || user.email || 'Пользователь';
+
+            authContainer.innerHTML = '';
+
+            const nameSpan = document.createElement('span');
+            nameSpan.style.fontWeight = 'bold';
+            nameSpan.style.marginRight = '10px';
+            nameSpan.textContent = `👤 ${displayName}`;
+
+            const logoutBtn = document.createElement('button');
+            logoutBtn.className = 'secondary-btn';
+            logoutBtn.style.marginTop = '0';
+            logoutBtn.textContent = 'Выйти';
+
+            logoutBtn.addEventListener('click', async () => {
+                await supabase.auth.signOut();
                 location.reload();
             });
+
+            authContainer.appendChild(nameSpan);
+            authContainer.appendChild(logoutBtn);
         }
 
         authBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const username = prompt("Введите ваше имя для входа:");
-                if (username && username.trim() !== '') {
-                    localStorage.setItem('authUser', username.trim());
-                    setLoggedInState(username.trim());
-                    alert("Внимание: Поскольку это приложение работает без сервера, реальная облачная синхронизация сейчас недоступна. Для переноса графика на другое устройство воспользуйтесь функцией 'Экспорт / Импорт' в настройках.");
+            btn.addEventListener('click', async () => {
+                const provider = btn.textContent.trim().toLowerCase(); // 'google' or 'github'
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: provider,
+                });
+                if (error) {
+                    console.error("Auth error:", error.message);
+                    alert("Ошибка авторизации: " + error.message);
                 }
             });
+        });
+
+        // Initialize Auth State Listener
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                setLoggedInState(session.user);
+                loadDataFromSupabase();
+            } else if (event === 'SIGNED_OUT') {
+                localStorage.removeItem('authUser');
+                scheduleData = {};
+                localStorage.removeItem('shiftSchedule');
+                renderCalendar(currentDate);
+                updateStats();
+            }
+        });
+
+        // Check initial session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                setLoggedInState(session.user);
+                loadDataFromSupabase();
+            }
         });
 
         // Builder Collapse Toggle
@@ -1058,8 +1099,43 @@
         });
 
         // Data Management and Stats
-        function saveData() {
+        async function saveData() {
             localStorage.setItem('shiftSchedule', JSON.stringify(scheduleData));
+
+            // Sync to Supabase if logged in
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session && session.user) {
+                const { error } = await supabase
+                    .from('schedules')
+                    .upsert({
+                        user_id: session.user.id,
+                        data: scheduleData
+                    });
+
+                if (error) {
+                    console.error("Error syncing to Supabase:", error);
+                }
+            }
+        }
+
+        async function loadDataFromSupabase() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session && session.user) {
+                const { data, error } = await supabase
+                    .from('schedules')
+                    .select('data')
+                    .eq('user_id', session.user.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found", which is fine for new users
+                    console.error("Error loading from Supabase:", error);
+                } else if (data && data.data) {
+                    scheduleData = data.data;
+                    localStorage.setItem('shiftSchedule', JSON.stringify(scheduleData));
+                    renderCalendar(currentDate);
+                    updateStats();
+                }
+            }
         }
 
         function updateStats() {
