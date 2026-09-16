@@ -13,17 +13,20 @@
             --panel-border: rgba(255, 255, 255, 0.4);
             --input-bg: rgba(255, 255, 255, 0.8);
             --input-border: #ccc;
-            --btn-bg: #4a90e2;
-            --btn-text: #fff;
-            --btn-hover: #357abd;
 
-            --shift-day-bg: rgba(255, 215, 0, 0.6);   /* Yellow */
-            --shift-night-bg: rgba(135, 206, 235, 0.6); /* Sky Blue */
-            --shift-off-bg: rgba(211, 211, 211, 0.6);  /* Light Gray */
-            --shift-vacation-bg: rgba(144, 238, 144, 0.6); /* Light Green */
-            --shift-sick-bg: rgba(255, 182, 193, 0.6); /* Light Pink */
+            --btn-bg: #2ecc71; /* Emerald */
+            --btn-text: #fff;
+            --btn-hover: #27ae60;
+
+            --shift-day-bg: rgba(144, 238, 144, 0.7);   /* Pale Green */
+            --shift-night-bg: rgba(46, 204, 113, 0.7);  /* Emerald */
+            --shift-off-bg: rgba(211, 211, 211, 0.6);   /* Light Gray */
+            --shift-vacation-bg: rgba(26, 188, 156, 0.7); /* Turquoise */
+            --shift-sick-bg: rgba(231, 76, 60, 0.7);    /* Red for contrast */
+
             --day-hover-bg: rgba(255, 255, 255, 0.9);
-            --today-border: #4a90e2;
+            --today-border: #2ecc71;
+            --neon-glow: 0 0 10px rgba(46, 204, 113, 0.6);
 
             --modal-overlay: rgba(0, 0, 0, 0.5);
         }
@@ -36,15 +39,19 @@
             --panel-border: rgba(255, 255, 255, 0.1);
             --input-bg: rgba(50, 50, 50, 0.8);
             --input-border: #555;
-            --btn-bg: #4a90e2;
 
-            --shift-day-bg: rgba(204, 173, 0, 0.6);
-            --shift-night-bg: rgba(43, 90, 132, 0.6);
+            --btn-bg: #27ae60;
+            --btn-hover: #1e8449;
+
+            --shift-day-bg: rgba(46, 204, 113, 0.5);
+            --shift-night-bg: rgba(22, 160, 133, 0.5);
             --shift-off-bg: rgba(80, 80, 80, 0.6);
-            --shift-vacation-bg: rgba(34, 139, 34, 0.6);
-            --shift-sick-bg: rgba(178, 34, 34, 0.6);
+            --shift-vacation-bg: rgba(39, 174, 96, 0.5);
+            --shift-sick-bg: rgba(192, 57, 43, 0.6);
+
             --day-hover-bg: rgba(70, 70, 70, 0.9);
-            --today-border: #66b2ff;
+            --today-border: #2ecc71;
+            --neon-glow: 0 0 12px rgba(46, 204, 113, 0.8);
 
             --modal-overlay: rgba(0, 0, 0, 0.7);
         }
@@ -102,6 +109,12 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
+        .header-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
         .main-content {
             display: grid;
             grid-template-columns: 300px 1fr;
@@ -153,6 +166,7 @@
 
         input[type="number"]:focus, input[type="date"]:focus, select:focus {
             border-color: var(--btn-bg);
+            box-shadow: var(--neon-glow);
         }
 
         button {
@@ -168,6 +182,7 @@
 
         button:hover {
             background-color: var(--btn-hover);
+            box-shadow: var(--neon-glow);
         }
 
         .secondary-btn {
@@ -333,6 +348,7 @@
 
         .day-cell.today {
             border: 2px solid var(--today-border);
+            box-shadow: var(--neon-glow);
         }
 
         .day-cell.other-month {
@@ -399,12 +415,19 @@
     <div class="app-container">
         <header>
             <h1>График смен</h1>
-            <div class="theme-toggle">
-                <label for="theme-switch">Тёмная тема</label>
-                <label class="switch">
-                    <input type="checkbox" id="theme-switch">
-                    <span class="slider round"></span>
-                </label>
+            <div class="header-actions">
+                <div class="theme-toggle">
+                    <label for="theme-switch">Тёмная тема</label>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-switch">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <button id="open-settings-btn" class="secondary-btn" style="margin-top:0; margin-left: 15px;">Настройки & Данные</button>
+                <div class="auth-placeholders" style="margin-left: 15px; display: flex; gap: 5px;">
+                    <button class="secondary-btn" style="margin-top:0;" title="Функция в разработке">Google</button>
+                    <button class="secondary-btn" style="margin-top:0;" title="Функция в разработке">GitHub</button>
+                </div>
             </div>
         </header>
 
@@ -487,6 +510,47 @@
         </div>
     </div>
 
+    <!-- Modal for Settings -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content panel" style="width: 400px;">
+            <span class="close-btn" id="close-settings-btn">&times;</span>
+            <h2>Настройки</h2>
+
+            <div class="modal-controls">
+                <h3>Цвета (Светлая тема)</h3>
+                <div class="cycle-step-row">
+                    <label style="flex:2">Дневная смена:</label>
+                    <input type="color" id="color-day" value="#90ee90" style="flex:1">
+                </div>
+                <div class="cycle-step-row">
+                    <label style="flex:2">Ночная смена:</label>
+                    <input type="color" id="color-night" value="#2ecc71" style="flex:1">
+                </div>
+                <div class="cycle-step-row">
+                    <label style="flex:2">Выходной:</label>
+                    <input type="color" id="color-off" value="#d3d3d3" style="flex:1">
+                </div>
+            </div>
+
+            <div class="modal-controls" style="margin-top: 20px; border-top: 1px solid var(--panel-border); padding-top: 20px;">
+                <h3>Данные (Экспорт / Импорт)</h3>
+                <p style="font-size: 0.8em; margin-bottom: 10px; color: var(--text-color);">Вы можете сохранить ваш график в файл и загрузить его на другом устройстве.</p>
+                <div style="display: flex; gap: 10px;">
+                    <button id="export-btn" style="flex:1">Экспорт (.json)</button>
+                    <label class="secondary-btn" style="flex:1; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        Импорт
+                        <input type="file" id="import-file" accept=".json" style="display: none;">
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button id="reset-settings-btn" class="secondary-btn" style="margin-right: auto;">Сбросить цвета</button>
+                <button id="save-settings-btn" class="primary-btn">Применить</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // State
         let scheduleData = JSON.parse(localStorage.getItem('shiftSchedule')) || {};
@@ -524,6 +588,17 @@
         const saveDayBtn = document.getElementById('save-day-btn');
         const hoursControl = document.getElementById('hours-control');
 
+        const settingsModal = document.getElementById('settings-modal');
+        const openSettingsBtn = document.getElementById('open-settings-btn');
+        const closeSettingsBtn = document.getElementById('close-settings-btn');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        const resetSettingsBtn = document.getElementById('reset-settings-btn');
+        const colorDayInput = document.getElementById('color-day');
+        const colorNightInput = document.getElementById('color-night');
+        const colorOffInput = document.getElementById('color-off');
+        const exportBtn = document.getElementById('export-btn');
+        const importFile = document.getElementById('import-file');
+
         // Initialization
         function init() {
             // Set initial start date to today if empty
@@ -538,10 +613,85 @@
                 themeSwitch.checked = true;
             }
 
+            // Load custom colors
+            const customColors = JSON.parse(localStorage.getItem('customColors'));
+            if (customColors) {
+                applyCustomColors(customColors);
+            }
+
             renderCycleSteps();
             renderCalendar(currentDate);
             updateStats();
         }
+
+        // Settings & Data Export/Import
+        openSettingsBtn.addEventListener('click', () => {
+            const customColors = JSON.parse(localStorage.getItem('customColors')) || { day: '#90ee90', night: '#2ecc71', off: '#d3d3d3' };
+            colorDayInput.value = customColors.day;
+            colorNightInput.value = customColors.night;
+            colorOffInput.value = customColors.off;
+
+            settingsModal.style.display = 'flex';
+        });
+
+        closeSettingsBtn.addEventListener('click', () => settingsModal.style.display = 'none');
+
+        saveSettingsBtn.addEventListener('click', () => {
+            const customColors = {
+                day: colorDayInput.value,
+                night: colorNightInput.value,
+                off: colorOffInput.value
+            };
+            localStorage.setItem('customColors', JSON.stringify(customColors));
+            applyCustomColors(customColors);
+            settingsModal.style.display = 'none';
+        });
+
+        resetSettingsBtn.addEventListener('click', () => {
+            localStorage.removeItem('customColors');
+            document.documentElement.style.removeProperty('--shift-day-bg');
+            document.documentElement.style.removeProperty('--shift-night-bg');
+            document.documentElement.style.removeProperty('--shift-off-bg');
+            colorDayInput.value = '#90ee90';
+            colorNightInput.value = '#2ecc71';
+            colorOffInput.value = '#d3d3d3';
+        });
+
+        function applyCustomColors(colors) {
+            document.documentElement.style.setProperty('--shift-day-bg', colors.day + 'b3');
+            document.documentElement.style.setProperty('--shift-night-bg', colors.night + 'b3');
+            document.documentElement.style.setProperty('--shift-off-bg', colors.off + '99');
+        }
+
+        exportBtn.addEventListener('click', () => {
+            const dataStr = JSON.stringify(scheduleData);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileDefaultName = 'shift_schedule.json';
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        });
+
+        importFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    scheduleData = importedData;
+                    saveData();
+                    renderCalendar(currentDate);
+                    updateStats();
+                    alert("График успешно импортирован!");
+                    settingsModal.style.display = 'none';
+                } catch (err) {
+                    alert("Ошибка чтения файла данных.");
+                }
+            };
+            reader.readAsText(file);
+        });
 
         // Cycle Builder Logic
         function renderCycleSteps() {
@@ -645,31 +795,43 @@
                 return;
             }
 
-            // Generate for 1 year from start date
+            // Confirm overwrite
+            if (Object.keys(scheduleData).length > 0) {
+                if (!confirm("Это перезапишет существующий график на год вперед и на год назад начиная с выбранной даты. Продолжить?")) {
+                    return;
+                }
+            }
+
+            // Generate for 1 year FORWARD from start date
             let currentGenDate = new Date(startDate);
             const endDate = new Date(startDate);
             endDate.setFullYear(endDate.getFullYear() + 1);
 
             let patternIndex = 0;
-
-            // Confirm overwrite
-            if (Object.keys(scheduleData).length > 0) {
-                if (!confirm("Это перезапишет существующий график на год вперед начиная с выбранной даты. Продолжить?")) {
-                    return;
-                }
-            }
-
             while (currentGenDate <= endDate) {
                 const dateKey = formatDate(currentGenDate);
                 const shift = pattern[patternIndex];
-
-                scheduleData[dateKey] = {
-                    type: shift.type,
-                    hours: shift.hours
-                };
+                scheduleData[dateKey] = { type: shift.type, hours: shift.hours };
 
                 patternIndex = (patternIndex + 1) % pattern.length;
                 currentGenDate.setDate(currentGenDate.getDate() + 1);
+            }
+
+            // Generate for 1 year BACKWARD from start date
+            currentGenDate = new Date(startDate);
+            currentGenDate.setDate(currentGenDate.getDate() - 1); // Start from day before
+            const startDateBackward = new Date(startDate);
+            startDateBackward.setFullYear(startDateBackward.getFullYear() - 1);
+
+            // Pattern runs backwards
+            patternIndex = pattern.length - 1;
+            while (currentGenDate >= startDateBackward) {
+                const dateKey = formatDate(currentGenDate);
+                const shift = pattern[patternIndex];
+                scheduleData[dateKey] = { type: shift.type, hours: shift.hours };
+
+                patternIndex = (patternIndex - 1 + pattern.length) % pattern.length;
+                currentGenDate.setDate(currentGenDate.getDate() - 1);
             }
 
             saveData();
@@ -803,6 +965,7 @@
         closeBtn.addEventListener('click', () => modal.style.display = 'none');
         window.addEventListener('click', (e) => {
             if (e.target === modal) modal.style.display = 'none';
+            if (e.target === settingsModal) settingsModal.style.display = 'none';
         });
 
         saveDayBtn.addEventListener('click', () => {
