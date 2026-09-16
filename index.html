@@ -7,26 +7,26 @@
     <style>
         :root {
             /* Light Theme Variables */
-            --bg-color: #f0f2f5;
+            --bg-color: #e6e6e6; /* Light gray instead of white */
             --text-color: #333;
-            --panel-bg: rgba(255, 255, 255, 0.7);
-            --panel-border: rgba(255, 255, 255, 0.4);
-            --input-bg: rgba(255, 255, 255, 0.8);
+            --panel-bg: rgba(230, 230, 230, 0.7);
+            --panel-border: rgba(200, 200, 200, 0.4);
+            --input-bg: rgba(230, 230, 230, 0.8);
             --input-border: #ccc;
 
-            --btn-bg: #2ecc71; /* Emerald */
-            --btn-text: #fff;
-            --btn-hover: #27ae60;
+            --btn-bg: #ec8854; /* Main orange/coral from palette */
+            --btn-text: #e0e0e0; /* Light gray text instead of white */
+            --btn-hover: #d37444;
 
-            --shift-day-bg: rgba(144, 238, 144, 0.7);   /* Pale Green */
-            --shift-night-bg: rgba(46, 204, 113, 0.7);  /* Emerald */
-            --shift-off-bg: rgba(211, 211, 211, 0.6);   /* Light Gray */
-            --shift-vacation-bg: rgba(26, 188, 156, 0.7); /* Turquoise */
-            --shift-sick-bg: rgba(231, 76, 60, 0.7);    /* Red for contrast */
+            --shift-day-bg: rgba(255, 224, 160, 0.7);   /* #ffe0a0 */
+            --shift-night-bg: rgba(255, 169, 110, 0.7);  /* #ffa96e */
+            --shift-off-bg: rgba(93, 88, 75, 0.6);   /* #5d584b */
+            --shift-vacation-bg: rgba(189, 221, 191, 0.7); /* #bdddbf */
+            --shift-sick-bg: rgba(236, 136, 84, 0.7);    /* #ec8854 */
 
-            --day-hover-bg: rgba(255, 255, 255, 0.9);
-            --today-border: #2ecc71;
-            --neon-glow: 0 0 10px rgba(46, 204, 113, 0.6);
+            --day-hover-bg: rgba(210, 210, 210, 0.9);
+            --today-border: #ec8854;
+            --neon-glow: 0 0 10px rgba(236, 136, 84, 0.6);
 
             --modal-overlay: rgba(0, 0, 0, 0.5);
         }
@@ -36,22 +36,22 @@
             --bg-color: #1a1a1a;
             --text-color: #e0e0e0;
             --panel-bg: rgba(30, 30, 30, 0.7);
-            --panel-border: rgba(255, 255, 255, 0.1);
+            --panel-border: rgba(150, 150, 150, 0.1);
             --input-bg: rgba(50, 50, 50, 0.8);
             --input-border: #555;
 
-            --btn-bg: #27ae60;
-            --btn-hover: #1e8449;
+            --btn-bg: #d37444;
+            --btn-hover: #b56035;
 
-            --shift-day-bg: rgba(46, 204, 113, 0.5);
-            --shift-night-bg: rgba(22, 160, 133, 0.5);
-            --shift-off-bg: rgba(80, 80, 80, 0.6);
-            --shift-vacation-bg: rgba(39, 174, 96, 0.5);
-            --shift-sick-bg: rgba(192, 57, 43, 0.6);
+            --shift-day-bg: rgba(255, 224, 160, 0.5);
+            --shift-night-bg: rgba(255, 169, 110, 0.5);
+            --shift-off-bg: rgba(93, 88, 75, 0.6);
+            --shift-vacation-bg: rgba(189, 221, 191, 0.5);
+            --shift-sick-bg: rgba(236, 136, 84, 0.6);
 
             --day-hover-bg: rgba(70, 70, 70, 0.9);
-            --today-border: #2ecc71;
-            --neon-glow: 0 0 12px rgba(46, 204, 113, 0.8);
+            --today-border: #ec8854;
+            --neon-glow: 0 0 12px rgba(236, 136, 84, 0.8);
 
             --modal-overlay: rgba(0, 0, 0, 0.7);
         }
@@ -217,7 +217,7 @@
         .remove-step-btn {
             background-color: #ff4d4d;
             padding: 8px 12px;
-            color: white;
+            color: #e0e0e0;
             flex: 0;
         }
 
@@ -260,7 +260,7 @@
             width: 16px;
             left: 4px;
             bottom: 4px;
-            background-color: white;
+            background-color: #e0e0e0;
             transition: .4s;
         }
 
@@ -294,7 +294,7 @@
         }
 
         .nav-btn {
-            background: rgba(255,255,255,0.2);
+            background: rgba(200,200,200,0.2);
             color: var(--text-color);
             border: 1px solid var(--panel-border);
             font-size: 1.2em;
@@ -326,7 +326,7 @@
             border: 1px solid var(--panel-border);
             border-radius: 8px;
             padding: 5px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(200,200,200,0.1);
             cursor: pointer;
             transition: background 0.2s, transform 0.1s;
             display: flex;
@@ -408,6 +408,24 @@
         .modal h2 { margin-bottom: 15px; }
         .modal-controls { margin-bottom: 15px; }
         .modal-actions { display: flex; justify-content: flex-end; }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, margin-top 0.4s ease-out, opacity 0.4s ease-out;
+            opacity: 0;
+        }
+
+        .collapsible-content.expanded {
+            max-height: 1000px;
+            opacity: 1;
+            margin-top: 15px;
+        }
+
+        #toggle-builder-btn {
+            width: 100%;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -434,22 +452,26 @@
         <div class="main-content">
             <section class="controls panel">
                 <h2>Шаблон смен</h2>
-                <div class="control-group">
-                    <label for="start-date">Дата начала цикла:</label>
-                    <input type="date" id="start-date">
-                </div>
-                <div class="control-group">
-                    <label>Последовательность цикла:</label>
-                    <div id="cycle-steps-container">
-                        <!-- Cycle steps will be rendered here -->
+                <button id="toggle-builder-btn" class="secondary-btn">Создать график &#9660;</button>
+
+                <div id="cycle-builder-collapse" class="collapsible-content">
+                    <div class="control-group">
+                        <label for="start-date">Дата начала цикла:</label>
+                        <input type="date" id="start-date">
                     </div>
-                    <button id="add-cycle-step-btn" type="button" class="secondary-btn">+ Добавить смену / выходной</button>
+                    <div class="control-group">
+                        <label>Последовательность цикла:</label>
+                        <div id="cycle-steps-container">
+                            <!-- Cycle steps will be rendered here -->
+                        </div>
+                        <button id="add-cycle-step-btn" type="button" class="secondary-btn">+ Добавить смену / выходной</button>
+                    </div>
+                    <div class="control-group">
+                        <label for="default-hours">Часов в смене:</label>
+                        <input type="number" id="default-hours" min="1" max="24" value="11">
+                    </div>
+                    <button id="generate-btn">Сгенерировать график на год</button>
                 </div>
-                <div class="control-group">
-                    <label for="default-hours">Часов в смене:</label>
-                    <input type="number" id="default-hours" min="1" max="24" value="11">
-                </div>
-                <button id="generate-btn">Сгенерировать график на год</button>
             </section>
 
             <section class="calendar-section panel">
@@ -566,6 +588,8 @@
 
         // Elements
         const themeSwitch = document.getElementById('theme-switch');
+        const toggleBuilderBtn = document.getElementById('toggle-builder-btn');
+        const cycleBuilderCollapse = document.getElementById('cycle-builder-collapse');
         const startDateInput = document.getElementById('start-date');
         const cycleStepsContainer = document.getElementById('cycle-steps-container');
         const addCycleStepBtn = document.getElementById('add-cycle-step-btn');
@@ -624,9 +648,19 @@
             updateStats();
         }
 
+        // Builder Collapse Toggle
+        toggleBuilderBtn.addEventListener('click', () => {
+            cycleBuilderCollapse.classList.toggle('expanded');
+            if (cycleBuilderCollapse.classList.contains('expanded')) {
+                toggleBuilderBtn.innerHTML = 'Скрыть график &#9650;';
+            } else {
+                toggleBuilderBtn.innerHTML = 'Создать график &#9660;';
+            }
+        });
+
         // Settings & Data Export/Import
         openSettingsBtn.addEventListener('click', () => {
-            const customColors = JSON.parse(localStorage.getItem('customColors')) || { day: '#90ee90', night: '#2ecc71', off: '#d3d3d3' };
+            const customColors = JSON.parse(localStorage.getItem('customColors')) || { day: '#ffe0a0', night: '#ffa96e', off: '#5d584b' };
             colorDayInput.value = customColors.day;
             colorNightInput.value = customColors.night;
             colorOffInput.value = customColors.off;
@@ -652,9 +686,9 @@
             document.documentElement.style.removeProperty('--shift-day-bg');
             document.documentElement.style.removeProperty('--shift-night-bg');
             document.documentElement.style.removeProperty('--shift-off-bg');
-            colorDayInput.value = '#90ee90';
-            colorNightInput.value = '#2ecc71';
-            colorOffInput.value = '#d3d3d3';
+            colorDayInput.value = '#ffe0a0';
+            colorNightInput.value = '#ffa96e';
+            colorOffInput.value = '#5d584b';
         });
 
         function applyCustomColors(colors) {
@@ -837,6 +871,11 @@
             saveData();
             renderCalendar(currentDate);
             updateStats();
+
+            // Collapse the builder after generation
+            cycleBuilderCollapse.classList.remove('expanded');
+            toggleBuilderBtn.innerHTML = 'Создать график &#9660;';
+
             alert("График успешно сгенерирован!");
         });
 
