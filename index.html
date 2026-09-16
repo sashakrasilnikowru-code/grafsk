@@ -170,6 +170,46 @@
             background-color: var(--btn-hover);
         }
 
+        .secondary-btn {
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--btn-bg);
+            margin-top: 5px;
+        }
+
+        .secondary-btn:hover {
+            background-color: rgba(74, 144, 226, 0.2);
+        }
+
+        .cycle-step-row {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 5px;
+            align-items: center;
+        }
+
+        .cycle-step-row select {
+            flex: 2;
+            padding: 8px;
+        }
+
+        .cycle-step-row input {
+            flex: 1;
+            padding: 8px;
+            min-width: 50px;
+        }
+
+        .remove-step-btn {
+            background-color: #ff4d4d;
+            padding: 8px 12px;
+            color: white;
+            flex: 0;
+        }
+
+        .remove-step-btn:hover {
+            background-color: #cc0000;
+        }
+
         /* Toggle Switch */
         .theme-toggle {
             display: flex;
@@ -376,16 +416,11 @@
                     <input type="date" id="start-date">
                 </div>
                 <div class="control-group">
-                    <label for="day-shifts">Дневные смены подряд:</label>
-                    <input type="number" id="day-shifts" min="0" value="1">
-                </div>
-                <div class="control-group">
-                    <label for="night-shifts">Ночные смены подряд:</label>
-                    <input type="number" id="night-shifts" min="0" value="1">
-                </div>
-                <div class="control-group">
-                    <label>Выходные (авто):</label>
-                    <input type="number" id="auto-off-days" value="2" readonly title="Рассчитывается автоматически (равно количеству рабочих смен)">
+                    <label>Последовательность цикла:</label>
+                    <div id="cycle-steps-container">
+                        <!-- Cycle steps will be rendered here -->
+                    </div>
+                    <button id="add-cycle-step-btn" type="button" class="secondary-btn">+ Добавить смену / выходной</button>
                 </div>
                 <div class="control-group">
                     <label for="default-hours">Часов в смене:</label>
@@ -458,12 +493,18 @@
         let currentDate = new Date();
         let selectedDateForModal = null;
 
+        // Cycle Template State
+        let cycleSteps = [
+            { type: 'day', count: 1 },
+            { type: 'night', count: 1 },
+            { type: 'off', count: 2 }
+        ];
+
         // Elements
         const themeSwitch = document.getElementById('theme-switch');
         const startDateInput = document.getElementById('start-date');
-        const dayShiftsInput = document.getElementById('day-shifts');
-        const nightShiftsInput = document.getElementById('night-shifts');
-        const autoOffDaysInput = document.getElementById('auto-off-days');
+        const cycleStepsContainer = document.getElementById('cycle-steps-container');
+        const addCycleStepBtn = document.getElementById('add-cycle-step-btn');
         const defaultHoursInput = document.getElementById('default-hours');
         const generateBtn = document.getElementById('generate-btn');
 
@@ -497,10 +538,66 @@
                 themeSwitch.checked = true;
             }
 
-            updateAutoOffDays();
+            renderCycleSteps();
             renderCalendar(currentDate);
             updateStats();
         }
+
+        // Cycle Builder Logic
+        function renderCycleSteps() {
+            cycleStepsContainer.innerHTML = '';
+            cycleSteps.forEach((step, index) => {
+                const row = document.createElement('div');
+                row.className = 'cycle-step-row';
+
+                const select = document.createElement('select');
+                const options = [
+                    { value: 'day', text: 'В день' },
+                    { value: 'night', text: 'В ночь' },
+                    { value: 'off', text: 'Выходные' }
+                ];
+                options.forEach(opt => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = opt.value;
+                    optionElement.textContent = opt.text;
+                    if (step.type === opt.value) optionElement.selected = true;
+                    select.appendChild(optionElement);
+                });
+
+                select.addEventListener('change', (e) => {
+                    cycleSteps[index].type = e.target.value;
+                });
+
+                const countInput = document.createElement('input');
+                countInput.type = 'number';
+                countInput.min = '1';
+                countInput.value = step.count;
+                countInput.addEventListener('change', (e) => {
+                    cycleSteps[index].count = Math.max(1, parseInt(e.target.value) || 1);
+                    e.target.value = cycleSteps[index].count;
+                });
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-step-btn';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.title = 'Удалить';
+                removeBtn.type = 'button';
+                removeBtn.addEventListener('click', () => {
+                    cycleSteps.splice(index, 1);
+                    renderCycleSteps();
+                });
+
+                row.appendChild(select);
+                row.appendChild(countInput);
+                row.appendChild(removeBtn);
+                cycleStepsContainer.appendChild(row);
+            });
+        }
+
+        addCycleStepBtn.addEventListener('click', () => {
+            cycleSteps.push({ type: 'day', count: 1 });
+            renderCycleSteps();
+        });
 
         // Theme Toggle
         themeSwitch.addEventListener('change', (e) => {
@@ -512,16 +609,6 @@
                 localStorage.setItem('theme', 'light');
             }
         });
-
-        // Auto update off days
-        function updateAutoOffDays() {
-            const days = parseInt(dayShiftsInput.value) || 0;
-            const nights = parseInt(nightShiftsInput.value) || 0;
-            autoOffDaysInput.value = days + nights;
-        }
-
-        dayShiftsInput.addEventListener('input', updateAutoOffDays);
-        nightShiftsInput.addEventListener('input', updateAutoOffDays);
 
         // Date formatting utility (YYYY-MM-DD local)
         function formatDate(date) {
@@ -541,18 +628,20 @@
             }
 
             const startDate = new Date(startDateStr);
-            const dayShifts = parseInt(dayShiftsInput.value) || 0;
-            const nightShifts = parseInt(nightShiftsInput.value) || 0;
-            const offDays = dayShifts + nightShifts;
             const defaultHours = parseInt(defaultHoursInput.value) || 11;
 
             const pattern = [];
-            for (let i = 0; i < dayShifts; i++) pattern.push({ type: 'day', hours: defaultHours });
-            for (let i = 0; i < nightShifts; i++) pattern.push({ type: 'night', hours: defaultHours });
-            for (let i = 0; i < offDays; i++) pattern.push({ type: 'off', hours: 0 });
+            for (const step of cycleSteps) {
+                for (let i = 0; i < step.count; i++) {
+                    pattern.push({
+                        type: step.type,
+                        hours: step.type === 'off' ? 0 : defaultHours
+                    });
+                }
+            }
 
             if (pattern.length === 0) {
-                alert("Укажите хотя бы одну смену.");
+                alert("Шаблон цикла пуст. Добавьте хотя бы одну смену или выходной.");
                 return;
             }
 
@@ -591,13 +680,17 @@
 
         // Calendar Navigation
         prevMonthBtn.addEventListener('click', () => {
+            currentDate.setDate(1); // Prevent month overflow on 31st
             currentDate.setMonth(currentDate.getMonth() - 1);
             renderCalendar(currentDate);
+            updateStats();
         });
 
         nextMonthBtn.addEventListener('click', () => {
+            currentDate.setDate(1);
             currentDate.setMonth(currentDate.getMonth() + 1);
             renderCalendar(currentDate);
+            updateStats();
         });
 
         // Render Calendar
@@ -745,14 +838,16 @@
             for (const [dateStr, data] of Object.entries(scheduleData)) {
                 if (!data.hours || data.hours <= 0) continue;
 
-                const d = new Date(dateStr);
-                const itemYear = d.getFullYear();
-                const itemMonth = d.getMonth();
+                const parts = dateStr.split('-');
+                if (parts.length === 3) {
+                    const itemYear = parseInt(parts[0], 10);
+                    const itemMonth = parseInt(parts[1], 10) - 1; // 0-indexed
 
-                if (itemYear === currentYear) {
-                    yearHours += data.hours;
-                    if (itemMonth === currentMonth) {
-                        monthHours += data.hours;
+                    if (itemYear === currentYear) {
+                        yearHours += data.hours;
+                        if (itemMonth === currentMonth) {
+                            monthHours += data.hours;
+                        }
                     }
                 }
             }
