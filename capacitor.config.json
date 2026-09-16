@@ -1,0 +1,6 @@
+{
+  "appId": "com.grafsk.shiftschedule",
+  "appName": "График смен",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
